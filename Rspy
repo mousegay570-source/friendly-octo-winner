@@ -53,43 +53,32 @@ OpenButtonGui.DisplayOrder = 999
 local OBFrame = Instance.new("Frame")
 OBFrame.Name = "OBFrame"
 OBFrame.Parent = OpenButtonGui
-OBFrame.BackgroundColor3 = Color3.fromRGB(28, 27, 30)
+OBFrame.BackgroundColor3 = Color3.fromRGB(37, 36, 42)
 OBFrame.BorderSizePixel = 0
 OBFrame.Position = UDim2.new(0, 10, 0.5, -22)
-OBFrame.Size = UDim2.new(0, 80, 0, 44)
+OBFrame.Size = UDim2.new(0, 44, 0, 44)
 OBFrame.Active = true
 OBFrame.Draggable = true
 
 local OBCorner = Instance.new("UICorner")
-OBCorner.CornerRadius = UDim.new(0, 10)
+OBCorner.CornerRadius = UDim.new(1, 0)
 OBCorner.Parent = OBFrame
 
 local OBStroke = Instance.new("UIStroke")
 OBStroke.Color = Color3.fromRGB(80, 130, 255)
-OBStroke.Thickness = 1.5
+OBStroke.Thickness = 2
 OBStroke.Parent = OBFrame
-
-local OBIcon = Instance.new("TextLabel")
-OBIcon.Name = "OBIcon"
-OBIcon.Parent = OBFrame
-OBIcon.BackgroundTransparency = 1
-OBIcon.Position = UDim2.new(0, 0, 0, 0)
-OBIcon.Size = UDim2.new(0, 28, 1, 0)
-OBIcon.Font = Enum.Font.GothamBold
-OBIcon.Text = "🔍"
-OBIcon.TextSize = 16
-OBIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 local OBLabel = Instance.new("TextLabel")
 OBLabel.Name = "OBLabel"
 OBLabel.Parent = OBFrame
 OBLabel.BackgroundTransparency = 1
-OBLabel.Position = UDim2.new(0, 28, 0, 0)
-OBLabel.Size = UDim2.new(1, -30, 1, 0)
+OBLabel.Position = UDim2.new(0, 0, 0, 0)
+OBLabel.Size = UDim2.new(1, 0, 1, 0)
 OBLabel.Font = Enum.Font.GothamBold
 OBLabel.Text = "SPY"
-OBLabel.TextSize = 13
-OBLabel.TextColor3 = Color3.fromRGB(100, 160, 255)
+OBLabel.TextSize = 12
+OBLabel.TextColor3 = Color3.fromRGB(120, 170, 255)
 
 local OBBtn = Instance.new("TextButton")
 OBBtn.Name = "OBBtn"
@@ -1418,14 +1407,18 @@ end
 BPBlockBtn.MouseButton1Click:Connect(function()
 	if selected then
 		local name = selected.Name
+		-- Tambahkan nama ke nameBlocklist (remote baru tidak akan muncul)
 		nameBlocklist[name] = true
-		blocklist[name] = true  -- also prevent firing
-		-- Remove existing log entries with this name from the list
+		blocklist[name] = true  -- juga blokir dari firing server
+		-- Hanya hapus log yang sedang dipilih saja
+		local targetLog = selected
+		if targetLog.Log and targetLog.Log.Parent then
+			targetLog.Log:Destroy()
+		end
 		for i = #logs, 1, -1 do
-			local v = logs[i]
-			if v.Name == name then
-				if v.Log and v.Log.Parent then v.Log:Destroy() end
+			if logs[i] == targetLog then
 				table.remove(logs, i)
+				break
 			end
 		end
 		selected = nil
@@ -1433,7 +1426,7 @@ BPBlockBtn.MouseButton1Click:Connect(function()
 		BPStatus.TextColor3 = Color3.fromRGB(255, 100, 100)
 		updateRemoteCanvas()
 	else
-		BPStatus.Text = "Select a remote first!"
+		BPStatus.Text = "Pilih remote dulu!"
 		BPStatus.TextColor3 = Color3.fromRGB(255, 200, 80)
 	end
 end)
@@ -1513,17 +1506,17 @@ if not _G.SimpleSpyExecuted then
 			Background.Visible = not Background.Visible
 			if Background.Visible then
 				OBLabel.TextColor3 = Color3.fromRGB(100, 255, 160)
-				OBIcon.Text = "🔍"
+				OBStroke.Color = Color3.fromRGB(100, 255, 160)
 			else
-				OBLabel.TextColor3 = Color3.fromRGB(100, 160, 255)
-				OBIcon.Text = "🔎"
+				OBLabel.TextColor3 = Color3.fromRGB(120, 170, 255)
+				OBStroke.Color = Color3.fromRGB(80, 130, 255)
 			end
 		end)
 		OBBtn.MouseEnter:Connect(function()
-			TweenService:Create(OBFrame, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(45, 44, 50) }):Play()
+			TweenService:Create(OBFrame, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(55, 54, 62) }):Play()
 		end)
 		OBBtn.MouseLeave:Connect(function()
-			TweenService:Create(OBFrame, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(28, 27, 30) }):Play()
+			TweenService:Create(OBFrame, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(37, 36, 42) }):Play()
 		end)
 
 		_G.SimpleSpyExecuted = true
