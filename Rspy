@@ -58,7 +58,6 @@ OBFrame.BorderSizePixel = 0
 OBFrame.Position = UDim2.new(0, 10, 0.5, -22)
 OBFrame.Size = UDim2.new(0, 44, 0, 44)
 OBFrame.Active = true
-OBFrame.Draggable = true
 
 local OBCorner = Instance.new("UICorner")
 OBCorner.CornerRadius = UDim.new(1, 0)
@@ -89,9 +88,8 @@ OBBtn.Text = ""
 OBBtn.ZIndex = 2
 
 -- ============================================================
---  BLOCK-BY-NAME PANEL (di bawah Background, di atas LogList)
+--  BLOCK-BY-NAME PANEL (below LogList, above bottom of LeftPanel)
 -- ============================================================
--- Akan dibuat setelah Background selesai
 
 Background.Name = "Background"
 Background.Parent = SimpleSpy2
@@ -335,12 +333,29 @@ Simple.BackgroundColor3 = Color3.new(1, 1, 1)
 Simple.AutoButtonColor = false
 Simple.BackgroundTransparency = 1
 Simple.Position = UDim2.new(0, 5, 0, 0)
-Simple.Size = UDim2.new(0, 57, 0, 18)
+Simple.Size = UDim2.new(0, 200, 0, 18)
 Simple.Font = Enum.Font.FredokaOne
-Simple.Text = "SimpleSpy"
+Simple.Text = "SimpleSpy Modded By Fenzoxy"
 Simple.TextColor3 = Color3.new(0, 0, 1)
-Simple.TextSize = 13
+Simple.TextSize = 11
 Simple.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Discord Button
+local DiscordButton = Instance.new("TextButton")
+DiscordButton.Name = "DiscordButton"
+DiscordButton.Parent = TopBar
+DiscordButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+DiscordButton.BorderSizePixel = 0
+DiscordButton.Position = UDim2.new(0, 207, 0, 2)
+DiscordButton.Size = UDim2.new(0, 50, 0, 14)
+DiscordButton.Font = Enum.Font.GothamBold
+DiscordButton.Text = "Discord"
+DiscordButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+DiscordButton.TextSize = 9
+DiscordButton.AutoButtonColor = false
+local DiscordCorner = Instance.new("UICorner")
+DiscordCorner.CornerRadius = UDim.new(0, 4)
+DiscordCorner.Parent = DiscordButton
 
 CloseButton.Name = "CloseButton"
 CloseButton.Parent = TopBar
@@ -1407,10 +1422,10 @@ end
 BPBlockBtn.MouseButton1Click:Connect(function()
 	if selected then
 		local name = selected.Name
-		-- Tambahkan nama ke nameBlocklist (remote baru tidak akan muncul)
+		-- Add name to nameBlocklist (new remotes with this name will not appear)
 		nameBlocklist[name] = true
-		blocklist[name] = true  -- juga blokir dari firing server
-		-- Hanya hapus log yang sedang dipilih saja
+		blocklist[name] = true  -- also prevent firing to server
+		-- Only remove the selected log entry
 		local targetLog = selected
 		if targetLog.Log and targetLog.Log.Parent then
 			targetLog.Log:Destroy()
@@ -1426,7 +1441,7 @@ BPBlockBtn.MouseButton1Click:Connect(function()
 		BPStatus.TextColor3 = Color3.fromRGB(255, 100, 100)
 		updateRemoteCanvas()
 	else
-		BPStatus.Text = "Pilih remote dulu!"
+		BPStatus.Text = "Select a remote first!"
 		BPStatus.TextColor3 = Color3.fromRGB(255, 200, 80)
 	end
 end)
@@ -1501,6 +1516,39 @@ if not _G.SimpleSpyExecuted then
 		if syn and syn.protect_gui then pcall(syn.protect_gui, OpenButtonGui) end
 		OpenButtonGui.Parent = CoreGui
 
+		-- Open Button: manual drag logic (Draggable = true is unreliable in CoreGui)
+		do
+			local dragging = false
+			local dragStartPos
+			local frameStartPos
+
+			OBFrame.InputBegan:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+					dragging = true
+					dragStartPos = input.Position
+					frameStartPos = OBFrame.AbsolutePosition
+				end
+			end)
+
+			UserInputService.InputChanged:Connect(function(input)
+				if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+					local delta = input.Position - dragStartPos
+					local newX = frameStartPos.X + delta.X
+					local newY = frameStartPos.Y + delta.Y
+					local vp = workspace.CurrentCamera.ViewportSize
+					newX = math.clamp(newX, 0, vp.X - OBFrame.AbsoluteSize.X)
+					newY = math.clamp(newY, 0, vp.Y - OBFrame.AbsoluteSize.Y)
+					OBFrame.Position = UDim2.fromOffset(newX, newY)
+				end
+			end)
+
+			UserInputService.InputEnded:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+					dragging = false
+				end
+			end)
+		end
+
 		-- Open Button toggle logic
 		OBBtn.MouseButton1Click:Connect(function()
 			Background.Visible = not Background.Visible
@@ -1517,6 +1565,18 @@ if not _G.SimpleSpyExecuted then
 		end)
 		OBBtn.MouseLeave:Connect(function()
 			TweenService:Create(OBFrame, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(37, 36, 42) }):Play()
+		end)
+
+		-- Discord button logic
+		DiscordButton.MouseButton1Click:Connect(function()
+			setclipboard("https://discord.gg/bZyMGmjqUe")
+			TextLabel.Text = "Discord link copied!"
+		end)
+		DiscordButton.MouseEnter:Connect(function()
+			TweenService:Create(DiscordButton, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(110, 120, 255) }):Play()
+		end)
+		DiscordButton.MouseLeave:Connect(function()
+			TweenService:Create(DiscordButton, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(88, 101, 242) }):Play()
 		end)
 
 		_G.SimpleSpyExecuted = true
